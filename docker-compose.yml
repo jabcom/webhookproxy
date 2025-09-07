@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  mondayproxy:
+    build: .
+    container_name: mondayproxy
+    ports:
+      - "3000:3000"
+    environment:
+      # Server Configuration
+      - NODE_ENV=production
+      - PORT=3000
+      
+      # Security Configuration
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      - REQUIRE_AUTH=${REQUIRE_AUTH:-true}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      
+      # Rate Limiting
+      - ENABLE_RATE_LIMIT=${ENABLE_RATE_LIMIT:-true}
+      - MAX_CONNECTIONS_PER_IP=${MAX_CONNECTIONS_PER_IP:-10}
+      - MAX_REQUESTS_PER_MINUTE=${MAX_REQUESTS_PER_MINUTE:-100}
+      
+      # Security
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - SLUG_WHITELIST=${SLUG_WHITELIST:-}
+      - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE:-10485760}
+      
+      # CORS
+      - ENABLE_CORS=${ENABLE_CORS:-true}
+      
+      # Memory Management
+      - MAX_LOGS=${MAX_LOGS:-1000}
+      - LOG_RETENTION_DAYS=${LOG_RETENTION_DAYS:-7}
+      - STATS_RETENTION_DAYS=${STATS_RETENTION_DAYS:-30}
+    volumes:
+      - ./logs:/app/logs
+      - ./temp-requests:/app/temp-requests
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mondayproxy-network
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+
+networks:
+  mondayproxy-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  mondayproxy-logs:
+    driver: local
+  mondayproxy-temp:
+    driver: local

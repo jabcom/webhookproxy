@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  mondayproxy:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: mondayproxy-prod
+    ports:
+      - "3000:3000"
+    environment:
+      # Server Configuration
+      - NODE_ENV=production
+      - PORT=3000
+      
+      # Security Configuration (REQUIRED in production)
+      - JWT_SECRET=${JWT_SECRET}
+      - REQUIRE_AUTH=true
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      
+      # Rate Limiting
+      - ENABLE_RATE_LIMIT=true
+      - MAX_CONNECTIONS_PER_IP=${MAX_CONNECTIONS_PER_IP:-5}
+      - MAX_REQUESTS_PER_MINUTE=${MAX_REQUESTS_PER_MINUTE:-50}
+      
+      # Security
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - SLUG_WHITELIST=${SLUG_WHITELIST}
+      - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE:-5242880}  # 5MB for production
+      
+      # CORS
+      - ENABLE_CORS=${ENABLE_CORS:-true}
+      
+      # Memory Management
+      - MAX_LOGS=${MAX_LOGS:-500}
+      - LOG_RETENTION_DAYS=${LOG_RETENTION_DAYS:-3}
+      - STATS_RETENTION_DAYS=${STATS_RETENTION_DAYS:-7}
+    volumes:
+      - mondayproxy-logs:/app/logs:rw
+      - mondayproxy-temp:/app/temp-requests:rw
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - mondayproxy-network
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=50m
+      - /app/logs:noexec,nosuid,size=100m
+      - /app/temp-requests:noexec,nosuid,size=50m
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 2048
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  # Optional: Nginx reverse proxy for HTTPS termination
+  nginx:
+    image: nginx:alpine
+    container_name: mondayproxy-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - mondayproxy
+    restart: unless-stopped
+    networks:
+      - mondayproxy-network
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  mondayproxy-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  mondayproxy-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./logs
+  mondayproxy-temp:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./temp-requests
