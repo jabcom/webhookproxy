@@ -101,13 +101,8 @@ class ProxyServer {
           return;
         }
         
-        // Handle status page
+        // Handle status page - always serve HTML, let client handle auth
         if (pathname === '/status') {
-          if (!this.checkStatusPageAccess(req)) {
-            res.writeHead(401, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Unauthorized access to status page' }));
-            return;
-          }
           this.handleStatusPage(req, res);
           return;
         }
@@ -691,6 +686,13 @@ class ProxyServer {
 
   handleApiRequest(req, res, pathname) {
     try {
+      // Check authentication for API endpoints
+      if (this.securityConfig.requireAuth && !this.checkStatusPageAccess(req)) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Unauthorized access to API' }));
+        return;
+      }
+      
       if (pathname === '/api/status') {
         this.handleStatusApi(req, res);
       } else {
