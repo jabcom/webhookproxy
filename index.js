@@ -12,7 +12,7 @@ import validator from 'validator';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-class ProxyServer {
+class WebhookProxyServer {
   constructor() {
     this.clients = new Map(); // slug -> WebSocket client
     this.pendingRequests = new Map(); // requestId -> {res, timeout}
@@ -1160,7 +1160,7 @@ class ProxyServer {
   start(port = 3000) {
     try {
       this.httpServer.listen(port, () => {
-        console.log(`[SERVER] Proxy server running on port ${port}`);
+        console.log(`[SERVER] WebhookProxy server running on port ${port}`);
         console.log(`[SERVER] WebSocket endpoint: ws://localhost:${port}/ws`);
         console.log(`[SERVER] HTTP endpoint: http://localhost:${port}/{slug}`);
         console.log(`[SERVER] Status page: http://localhost:${port}/status`);
@@ -1282,10 +1282,10 @@ class ProxyServer {
 
 // Start the server with error handling
 try {
-  const proxyServer = new ProxyServer();
+  const proxyServer = new WebhookProxyServer();
   proxyServer.start(3000);
 } catch (error) {
-  console.error(`[SERVER] Failed to start proxy server:`, error.message);
+  console.error(`[SERVER] Failed to start WebhookProxy server:`, error.message);
   process.exit(1);
 }
 

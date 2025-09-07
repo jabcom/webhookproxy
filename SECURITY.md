@@ -2,7 +2,7 @@
 
 ## Overview
 
-MondayProxy implements comprehensive security measures to protect against common web vulnerabilities and attacks. This guide covers security features, configuration, and best practices.
+WebhookProxy implements comprehensive security measures to protect against common web vulnerabilities and attacks. This guide covers security features, configuration, and best practices.
 
 ## Security Features
 
@@ -320,6 +320,6 @@ npm install --save helmet express-rate-limit
 
 ## Conclusion
 
-MondayProxy provides comprehensive security features to protect against common web vulnerabilities. Proper configuration and monitoring are essential for maintaining security in production environments.
+WebhookProxy provides comprehensive security features to protect against common web vulnerabilities. Proper configuration and monitoring are essential for maintaining security in production environments.
 
 **Remember**: Security is an ongoing process, not a one-time setup. Regular monitoring, updates, and testing are crucial for maintaining a secure proxy server.

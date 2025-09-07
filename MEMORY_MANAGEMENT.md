@@ -2,7 +2,7 @@
 
 ## Overview
 
-MondayProxy implements comprehensive memory management to prevent memory leaks and ensure long-term stability. This document outlines the memory management strategies and configuration options.
+WebhookProxy implements comprehensive memory management to prevent memory leaks and ensure long-term stability. This document outlines the memory management strategies and configuration options.
 
 ## Memory Leak Prevention
 

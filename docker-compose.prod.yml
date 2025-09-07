@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  mondayproxy:
+  webhookproxy:
     build: 
       context: .
       dockerfile: Dockerfile
-    container_name: mondayproxy-prod
+    container_name: webhookproxy-prod
     ports:
       - "3000:3000"
     environment:
@@ -36,8 +36,8 @@ services:
       - LOG_RETENTION_DAYS=${LOG_RETENTION_DAYS:-3}
       - STATS_RETENTION_DAYS=${STATS_RETENTION_DAYS:-7}
     volumes:
-      - mondayproxy-logs:/app/logs:rw
-      - mondayproxy-temp:/app/temp-requests:rw
+      - webhookproxy-logs:/app/logs:rw
+      - webhookproxy-temp:/app/temp-requests:rw
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/status"]
@@ -46,7 +46,7 @@ services:
       retries: 3
       start_period: 15s
     networks:
-      - mondayproxy-network
+      - webhookproxy-network
     security_opt:
       - no-new-privileges:true
     read_only: true
@@ -92,25 +92,25 @@ services:
       - mondayproxy
     restart: unless-stopped
     networks:
-      - mondayproxy-network
+      - webhookproxy-network
     security_opt:
       - no-new-privileges:true
 
 networks:
-  mondayproxy-network:
+  webhookproxy-network:
     driver: bridge
     ipam:
       config:
         - subnet: 172.20.0.0/16
 
 volumes:
-  mondayproxy-logs:
+  webhookproxy-logs:
     driver: local
     driver_opts:
       type: none
       o: bind
       device: ./logs
-  mondayproxy-temp:
+  webhookproxy-temp:
     driver: local
     driver_opts:
       type: none

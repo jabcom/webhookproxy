@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MondayProxy Server Status</title>
+    <title>WebhookProxy Server Status</title>
     <style>
         * {
             margin: 0;
@@ -416,7 +416,7 @@
     <div class="login-overlay" id="loginOverlay">
         <div class="login-form">
             <h2>🔐 Admin Login</h2>
-            <p>Please enter your admin password to access the MondayProxy status dashboard.</p>
+            <p>Please enter your admin password to access the WebhookProxy status dashboard.</p>
             
             <div class="error-message" id="errorMessage"></div>
             
@@ -438,7 +438,7 @@
     
     <div class="container" id="mainContainer" style="display: none;">
         <div class="header">
-            <h1>🚀 MondayProxy Server</h1>
+            <h1>🚀 WebhookProxy Server</h1>
             <p>Real-time WebSocket Proxy Server Status</p>
             <button class="logout-btn" onclick="logout()" style="
                 background: #f56565;
@@ -598,7 +598,7 @@
                 
                 if (response.ok) {
                     authToken = data.token;
-                    localStorage.setItem('mondayproxy_token', authToken);
+                    localStorage.setItem('webhookproxy_token', authToken);
                     hideLoginForm();
                     initializeApp();
                 } else {
@@ -613,7 +613,7 @@
 
         function logout() {
             authToken = null;
-            localStorage.removeItem('mondayproxy_token');
+            localStorage.removeItem('webhookproxy_token');
             showLoginForm();
             if (ws) {
                 ws.close();
@@ -808,7 +808,7 @@
 
         function checkAuthOnLoad() {
             // Check if we have a stored token
-            const storedToken = localStorage.getItem('mondayproxy_token');
+            const storedToken = localStorage.getItem('webhookproxy_token');
             if (storedToken) {
                 authToken = storedToken;
                 // Verify token is still valid by making a test request

@@ -1,7 +1,7 @@
 {
-  "name": "mondayproxy",
+  "name": "webhookproxy",
   "version": "1.0.0",
-  "description": "WebSocket proxy server for HTTP requests",
+  "description": "WebSocket proxy server for HTTP requests and webhooks",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -17,7 +17,7 @@
     "helmet": "^7.1.0",
     "validator": "^13.11.0"
   },
-  "keywords": ["websocket", "proxy", "http"],
+  "keywords": ["websocket", "proxy", "http", "webhook"],
   "author": "",
   "license": "MIT"
 }

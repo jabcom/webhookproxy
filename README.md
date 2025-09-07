@@ -1,6 +1,6 @@
-# MondayProxy 🚀
+# WebhookProxy 🚀
 
-A high-performance Node.js WebSocket proxy server that forwards HTTP requests to WebSocket clients based on URL slugs. Perfect for building real-time APIs, microservices, and distributed systems.
+A high-performance Node.js WebSocket proxy server that forwards HTTP requests to WebSocket clients based on URL slugs. Perfect for building real-time APIs, microservices, webhooks, and distributed systems.
 
 ## 🌟 Features
 
@@ -19,7 +19,7 @@ A high-performance Node.js WebSocket proxy server that forwards HTTP requests to
 
 ```mermaid
 graph TB
-    Client[HTTP Client] --> Proxy[MondayProxy Server]
+    Client[HTTP Client] --> Proxy[WebhookProxy Server]
     Proxy --> WS1[WebSocket Client 1<br/>slug: api-service]
     Proxy --> WS2[WebSocket Client 2<br/>slug: webhook-handler]
     Proxy --> WS3[WebSocket Client 3<br/>slug: data-processor]
@@ -37,7 +37,7 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant C as HTTP Client
-    participant P as MondayProxy
+    participant P as WebhookProxy
     participant WS as WebSocket Client
     
     C->>P: GET /api-service
@@ -57,8 +57,8 @@ sequenceDiagram
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mondayproxy.git
-cd mondayproxy
+git clone https://github.com/yourusername/webhookproxy.git
+cd webhookproxy
 
 # Install dependencies
 npm install
@@ -126,7 +126,7 @@ import json
 import uuid
 from typing import Dict, Any
 
-class MondayProxyClient:
+class WebhookProxyClient:
     def __init__(self, server_url: str, slug: str):
         self.server_url = server_url
         self.slug = slug
@@ -144,7 +144,7 @@ class MondayProxyClient:
                 "slug": self.slug
             }))
             
-            print(f"✅ Connected to MondayProxy with slug: {self.slug}")
+            print(f"✅ Connected to WebhookProxy with slug: {self.slug}")
             
             # Start listening for messages
             await self.listen_for_messages()
@@ -186,7 +186,7 @@ class MondayProxyClient:
         # Process the request (your business logic here)
         response_body = await self.process_request(request_data)
         
-        # Send response back to MondayProxy
+        # Send response back to WebhookProxy
         response = {
             "slug": self.slug,
             "requestId": request_id,
@@ -233,15 +233,15 @@ class MondayProxyClient:
             }
     
     async def disconnect(self):
-        """Disconnect from MondayProxy"""
+        """Disconnect from WebhookProxy"""
         if self.websocket:
             await self.websocket.close()
             self.running = False
-            print("🔌 Disconnected from MondayProxy")
+            print("🔌 Disconnected from WebhookProxy")
 
 # Usage example
 async def main():
-    client = MondayProxyClient("ws://localhost:3000/ws", "python-service")
+    client = WebhookProxyClient("ws://localhost:3000/ws", "python-service")
     
     try:
         await client.connect()
@@ -306,7 +306,7 @@ public class ResponseMessage
     public ResponseData response;
 }
 
-public class MondayProxyClient : MonoBehaviour
+public class WebhookProxyClient : MonoBehaviour
 {
     [Header("Connection Settings")]
     public string serverUrl = "ws://localhost:3000/ws";
@@ -339,7 +339,7 @@ public class MondayProxyClient : MonoBehaviour
             // Connect
             webSocket.Connect();
             
-            LogDebug("🔌 Attempting to connect to MondayProxy...");
+            LogDebug("🔌 Attempting to connect to WebhookProxy...");
         }
         catch (Exception e)
         {
@@ -350,7 +350,7 @@ public class MondayProxyClient : MonoBehaviour
     void OnWebSocketOpen(object sender, EventArgs e)
     {
         isConnected = true;
-        LogDebug("✅ Connected to MondayProxy server");
+        LogDebug("✅ Connected to WebhookProxy server");
         
         // Register with slug
         var registrationMessage = new { slug = slug };
@@ -610,13 +610,13 @@ public class MondayProxyClient : MonoBehaviour
     {
         if (enableDebugLogs)
         {
-            Debug.Log($"[MondayProxy] {message}");
+            Debug.Log($"[WebhookProxy] {message}");
         }
     }
     
     void LogError(string message)
     {
-        Debug.LogError($"[MondayProxy] {message}");
+        Debug.LogError($"[WebhookProxy] {message}");
     }
     
     void OnDestroy()
@@ -692,17 +692,17 @@ STATS_RETENTION_DAYS=30
 
 ```bash
 # Build Docker image
-docker build -t mondayproxy .
+docker build -t webhookproxy .
 
 # Run with environment variables
 docker run -d \
-  --name mondayproxy \
+  --name webhookproxy \
   -p 3000:3000 \
   -e JWT_SECRET="$(openssl rand -base64 32)" \
   -e ADMIN_PASSWORD="$(openssl rand -base64 16)" \
   -e REQUIRE_AUTH=true \
   -e ENABLE_RATE_LIMIT=true \
-  mondayproxy
+  webhookproxy
 ```
 
 ## 📊 Monitoring & Status
@@ -780,4 +780,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**MondayProxy** - The modern way to bridge HTTP and WebSocket protocols! 🚀
+**WebhookProxy** - The modern way to bridge HTTP and WebSocket protocols! 🚀

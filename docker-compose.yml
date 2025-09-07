@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  mondayproxy:
+  webhookproxy:
     build: .
-    container_name: mondayproxy
+    container_name: webhookproxy
     ports:
       - "3000:3000"
     environment:
@@ -44,7 +44,7 @@ services:
       retries: 3
       start_period: 10s
     networks:
-      - mondayproxy-network
+      - webhookproxy-network
     security_opt:
       - no-new-privileges:true
     read_only: false
@@ -58,14 +58,14 @@ services:
       - SETUID
 
 networks:
-  mondayproxy-network:
+  webhookproxy-network:
     driver: bridge
     ipam:
       config:
         - subnet: 172.20.0.0/16
 
 volumes:
-  mondayproxy-logs:
+  webhookproxy-logs:
     driver: local
-  mondayproxy-temp:
+  webhookproxy-temp:
     driver: local
