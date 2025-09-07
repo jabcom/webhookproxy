@@ -57,7 +57,7 @@ sequenceDiagram
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/webhookproxy.git
+git clone https://github.com/jabcom/webhookproxy.git
 cd webhookproxy
 
 # Install dependencies

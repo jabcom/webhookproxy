@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
+import { cpus, totalmem, freemem } from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,6 +25,13 @@ class WebhookProxyServer {
       responseTimes: [],
       hourlyStats: new Map(), // hour -> {requests, responses, avgTime}
       dailyStats: new Map()    // date -> {requests, responses, avgTime}
+    };
+    this.systemMetrics = {
+      cpuUsage: 0,
+      memoryUsage: 0,
+      totalMemory: totalmem(),
+      freeMemory: freemem(),
+      cpuCount: cpus().length
     };
     this.logs = [];
     this.statusClients = new Set(); // WebSocket clients connected to status page
@@ -73,6 +81,44 @@ class WebhookProxyServer {
     
     if (this.securityConfig.requireAuth) {
       console.log(`[SECURITY] WARNING: Using default admin password. Change ADMIN_PASSWORD in production!`);
+    }
+  }
+
+  updateSystemMetrics() {
+    try {
+      // Get memory usage
+      const memUsage = process.memoryUsage();
+      const totalMem = totalmem();
+      const freeMem = freemem();
+      
+      this.systemMetrics.memoryUsage = Math.round((memUsage.heapUsed / totalMem) * 100 * 100) / 100; // Percentage with 2 decimal places
+      this.systemMetrics.freeMemory = freeMem;
+      this.systemMetrics.heapUsed = memUsage.heapUsed;
+      this.systemMetrics.heapTotal = memUsage.heapTotal;
+      this.systemMetrics.external = memUsage.external;
+      this.systemMetrics.rss = memUsage.rss;
+      
+      // Get CPU usage (simplified - in production you might want more sophisticated CPU monitoring)
+      const cpus = cpus();
+      let totalIdle = 0;
+      let totalTick = 0;
+      
+      cpus.forEach(cpu => {
+        for (let type in cpu.times) {
+          totalTick += cpu.times[type];
+        }
+        totalIdle += cpu.times.idle;
+      });
+      
+      // Calculate CPU usage percentage
+      const idle = totalIdle / cpus.length;
+      const total = totalTick / cpus.length;
+      const usage = 100 - Math.round(100 * idle / total);
+      
+      this.systemMetrics.cpuUsage = Math.max(0, Math.min(100, usage)); // Clamp between 0-100
+      
+    } catch (error) {
+      console.error(`[SYSTEM] Error updating system metrics:`, error.message);
     }
   }
 
@@ -718,7 +764,8 @@ class WebhookProxyServer {
         serverStartTime: this.serverStartTime.toISOString(),
         activeClients: Array.from(this.clients.keys()),
         pendingRequests: this.pendingRequests.size,
-        stats: this.stats
+        stats: this.stats,
+        systemMetrics: this.systemMetrics
       };
       
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -739,7 +786,8 @@ class WebhookProxyServer {
         data: {
           serverStartTime: this.serverStartTime.toISOString(),
           activeClients: Array.from(this.clients.keys()),
-          pendingRequests: this.pendingRequests.size
+          pendingRequests: this.pendingRequests.size,
+          systemMetrics: this.systemMetrics
         }
       };
       
@@ -798,11 +846,17 @@ class WebhookProxyServer {
       this.aggregateDailyStats();
     }, 86400000); // 24 hours
     
+    // System metrics update interval (every 5 seconds)
+    this.systemMetricsInterval = setInterval(() => {
+      this.updateSystemMetrics();
+    }, 5000);
+    
     console.log(`[MEMORY] Memory management initialized`);
     console.log(`[MEMORY] Cleanup interval: ${this.memoryConfig.cleanupIntervalMs}ms`);
     console.log(`[MEMORY] GC interval: ${this.memoryConfig.gcIntervalMs}ms`);
     console.log(`[MEMORY] Log retention: ${this.memoryConfig.logRetentionDays} days`);
     console.log(`[MEMORY] Stats retention: ${this.memoryConfig.statsRetentionDays} days`);
+    console.log(`[SYSTEM] System metrics update interval: 5000ms`);
   }
 
   performMemoryCleanup() {

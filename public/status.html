@@ -513,6 +513,30 @@
                     <span class="status-value" id="avgResponseTime">--</span>
                 </div>
             </div>
+
+            <div class="status-card">
+                <h3>System Resources</h3>
+                <div class="status-item">
+                    <span class="status-label">CPU Usage</span>
+                    <span class="status-value" id="cpuUsage">--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Memory Usage</span>
+                    <span class="status-value" id="memoryUsage">--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Total Memory</span>
+                    <span class="status-value" id="totalMemory">--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Free Memory</span>
+                    <span class="status-value" id="freeMemory">--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">CPU Cores</span>
+                    <span class="status-value" id="cpuCores">--</span>
+                </div>
+            </div>
         </div>
 
         <div class="logs-section">
@@ -695,8 +719,43 @@
             document.getElementById('totalClients').textContent = statusData.activeClients?.length || 0;
             document.getElementById('pendingRequests').textContent = statusData.pendingRequests || 0;
             
+            // Update system metrics if available
+            if (statusData.systemMetrics) {
+                updateSystemMetrics(statusData.systemMetrics);
+            }
+            
             updateClientsList(statusData.activeClients || []);
             updateUptime();
+        }
+
+        function updateSystemMetrics(systemMetrics) {
+            // Update CPU usage
+            const cpuUsage = systemMetrics.cpuUsage || 0;
+            document.getElementById('cpuUsage').textContent = `${cpuUsage.toFixed(1)}%`;
+            
+            // Update memory usage
+            const memoryUsage = systemMetrics.memoryUsage || 0;
+            document.getElementById('memoryUsage').textContent = `${memoryUsage.toFixed(1)}%`;
+            
+            // Update total memory
+            const totalMemory = systemMetrics.totalMemory || 0;
+            document.getElementById('totalMemory').textContent = formatBytes(totalMemory);
+            
+            // Update free memory
+            const freeMemory = systemMetrics.freeMemory || 0;
+            document.getElementById('freeMemory').textContent = formatBytes(freeMemory);
+            
+            // Update CPU cores
+            const cpuCores = systemMetrics.cpuCount || 0;
+            document.getElementById('cpuCores').textContent = cpuCores;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
         function updateClientsList(clients) {
@@ -784,6 +843,9 @@
                 .then(data => {
                     updateServerStatus(data);
                     updateStats(data.stats || {});
+                    if (data.systemMetrics) {
+                        updateSystemMetrics(data.systemMetrics);
+                    }
                     addLog('Status refreshed manually', 'server');
                 })
                 .catch(error => {
