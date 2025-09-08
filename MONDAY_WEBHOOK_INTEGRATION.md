@@ -45,7 +45,7 @@ This guide demonstrates how to use WebhookProxy with Unity C# to handle webhooks
 
 1. In your Monday.com app settings, add a webhook endpoint:
    ```
-   https://your-domain.com/monday-webhooks
+   https://your-domain.com/hooks/monday-webhooks
    ```
    Replace `your-domain.com` with your WebhookProxy server domain.
 
@@ -56,7 +56,23 @@ This guide demonstrates how to use WebhookProxy with Unity C# to handle webhooks
    - **Column Value Changed**
    - **Board Updated**
 
-### 3. Get Webhook Verification Token
+### 3. Understanding WebhookProxy URL Format
+
+WebhookProxy uses a RESTful URL structure for webhook endpoints:
+
+- **Webhook Endpoints**: `/hooks/{hook}`
+- **Status Page**: `/status`
+- **API Endpoint**: `/api/status`
+- **Root Help**: `/`
+
+For Monday.com integration, your webhook URL will be:
+```
+https://your-domain.com/hooks/monday-webhooks
+```
+
+The `monday-webhooks` part is the hook name that your Unity client will register with.
+
+### 4. Get Webhook Verification Token
 
 Monday.com provides a verification token for webhook security. Save this token for later use.
 
@@ -131,6 +147,7 @@ The server will be available at:
 - **HTTP**: `http://localhost:3000`
 - **WebSocket**: `ws://localhost:3000/ws`
 - **Status Page**: `http://localhost:3000/status`
+- **Webhook Endpoints**: `http://localhost:3000/hooks/{hook}`
 
 ## Unity Client Implementation
 
@@ -924,6 +941,7 @@ In the Unity Inspector:
 
 **WebhookProxyClient:**
 - Server URL: `ws://localhost:3000/ws`
+- Webhook URL: `http://localhost:3000/hooks/monday-webhooks`
 - Slug: `monday-webhooks`
 - Auto Connect: ✅
 - Enable Debug Logs: ✅
@@ -944,7 +962,7 @@ In the Unity Inspector:
 
 ```bash
 # Test webhook endpoint directly
-curl -X POST http://localhost:3000/monday-webhooks \
+curl -X POST http://localhost:3000/hooks/monday-webhooks \
   -H "Content-Type: application/json" \
   -H "X-Monday-Signature: your-signature" \
   -d '{
@@ -1065,7 +1083,7 @@ WebSocket connection fails in build
 curl http://localhost:3000/api/status
 
 # Test webhook endpoint
-curl -X POST http://localhost:3000/monday-webhooks \
+curl -X POST http://localhost:3000/hooks/monday-webhooks \
   -H "Content-Type: application/json" \
   -d '{"test": "data"}'
 

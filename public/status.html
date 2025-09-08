@@ -455,29 +455,6 @@
 
         <div class="status-grid">
             <div class="status-card">
-                <h3>Server Status</h3>
-                <div class="status-item">
-                    <span class="status-label">
-                        <span class="status-indicator status-online" id="serverIndicator"></span>
-                        Server Status
-                    </span>
-                    <span class="status-value" id="serverStatus">Online</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Uptime</span>
-                    <span class="status-value" id="uptime">--</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Port</span>
-                    <span class="status-value">3000</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Request Timeout</span>
-                    <span class="status-value">2.5 minutes</span>
-                </div>
-            </div>
-
-            <div class="status-card">
                 <h3>Active Clients</h3>
                 <div class="status-item">
                     <span class="status-label">Total Clients</span>
@@ -521,15 +498,27 @@
                     <span class="status-value" id="cpuUsage">--</span>
                 </div>
                 <div class="status-item">
-                    <span class="status-label">Memory Usage</span>
-                    <span class="status-value" id="memoryUsage">--</span>
+                    <span class="status-label">Heap Used</span>
+                    <span class="status-value" id="heapUsed">--</span>
                 </div>
                 <div class="status-item">
-                    <span class="status-label">Total Memory</span>
+                    <span class="status-label">Heap Total</span>
+                    <span class="status-value" id="heapTotal">--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">RSS Memory</span>
+                    <span class="status-value" id="rssMemory">--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">External Memory</span>
+                    <span class="status-value" id="externalMemory">--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">System Total</span>
                     <span class="status-value" id="totalMemory">--</span>
                 </div>
                 <div class="status-item">
-                    <span class="status-label">Free Memory</span>
+                    <span class="status-label">System Free</span>
                     <span class="status-value" id="freeMemory">--</span>
                 </div>
                 <div class="status-item">
@@ -549,6 +538,26 @@
                     <span class="log-timestamp">[Loading...]</span>
                     <span class="log-level-server">[SERVER]</span>
                     <span class="log-message">Connecting to server...</span>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <h3>Webhook Endpoints</h3>
+                <div class="status-item">
+                    <span class="status-label">Webhook URL Format</span>
+                    <span class="status-value" style="font-family: monospace; font-size: 0.9rem;">/hooks/{hook}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Example</span>
+                    <span class="status-value" style="font-family: monospace; font-size: 0.9rem;">/hooks/my-webhook</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Status Page</span>
+                    <span class="status-value" style="font-family: monospace; font-size: 0.9rem;">/status</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">API Endpoint</span>
+                    <span class="status-value" style="font-family: monospace; font-size: 0.9rem;">/api/status</span>
                 </div>
             </div>
         </div>
@@ -725,7 +734,6 @@
             }
             
             updateClientsList(statusData.activeClients || []);
-            updateUptime();
         }
 
         function updateSystemMetrics(systemMetrics) {
@@ -733,15 +741,27 @@
             const cpuUsage = systemMetrics.cpuUsage || 0;
             document.getElementById('cpuUsage').textContent = `${cpuUsage.toFixed(1)}%`;
             
-            // Update memory usage
-            const memoryUsage = systemMetrics.memoryUsage || 0;
-            document.getElementById('memoryUsage').textContent = `${memoryUsage.toFixed(1)}%`;
+            // Update heap used memory
+            const heapUsed = systemMetrics.heapUsed || 0;
+            document.getElementById('heapUsed').textContent = formatBytes(heapUsed);
             
-            // Update total memory
+            // Update heap total memory
+            const heapTotal = systemMetrics.heapTotal || 0;
+            document.getElementById('heapTotal').textContent = formatBytes(heapTotal);
+            
+            // Update RSS memory
+            const rssMemory = systemMetrics.rss || 0;
+            document.getElementById('rssMemory').textContent = formatBytes(rssMemory);
+            
+            // Update external memory
+            const externalMemory = systemMetrics.external || 0;
+            document.getElementById('externalMemory').textContent = formatBytes(externalMemory);
+            
+            // Update system total memory
             const totalMemory = systemMetrics.totalMemory || 0;
             document.getElementById('totalMemory').textContent = formatBytes(totalMemory);
             
-            // Update free memory
+            // Update system free memory
             const freeMemory = systemMetrics.freeMemory || 0;
             document.getElementById('freeMemory').textContent = formatBytes(freeMemory);
             
@@ -784,17 +804,6 @@
             if (stats.responseTimes && stats.responseTimes.length > 0) {
                 const avgTime = stats.responseTimes.reduce((a, b) => a + b, 0) / stats.responseTimes.length;
                 document.getElementById('avgResponseTime').textContent = `${avgTime.toFixed(2)}ms`;
-            }
-        }
-
-        function updateUptime() {
-            if (serverStartTime) {
-                const now = new Date();
-                const uptime = Math.floor((now - serverStartTime) / 1000);
-                const hours = Math.floor(uptime / 3600);
-                const minutes = Math.floor((uptime % 3600) / 60);
-                const seconds = uptime % 60;
-                document.getElementById('uptime').textContent = `${hours}h ${minutes}m ${seconds}s`;
             }
         }
 
@@ -857,15 +866,41 @@
                 });
         }
 
+        function refreshStatusSilent() {
+            fetch('/api/status', {
+                headers: getAuthHeaders()
+            })
+                .then(response => {
+                    if (response.status === 401) {
+                        logout();
+                        throw new Error('Authentication required');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    updateServerStatus(data);
+                    updateStats(data.stats || {});
+                    if (data.systemMetrics) {
+                        updateSystemMetrics(data.systemMetrics);
+                    }
+                })
+                .catch(error => {
+                    // Only log errors, don't show them in the UI for silent refreshes
+                    console.error('Silent refresh error:', error.message);
+                });
+        }
+
         function initializeApp() {
             addLog('Status page loaded', 'server');
             connectWebSocket();
             
-            // Update uptime every second
-            setInterval(updateUptime, 1000);
-            
             // Initial status fetch
             refreshStatus();
+            
+            // Refresh all stats every second (silent)
+            setInterval(() => {
+                refreshStatusSilent();
+            }, 1000);
         }
 
         function checkAuthOnLoad() {

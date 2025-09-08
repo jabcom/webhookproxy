@@ -99,11 +99,11 @@ class WebhookProxyServer {
       this.systemMetrics.rss = memUsage.rss;
       
       // Get CPU usage (simplified - in production you might want more sophisticated CPU monitoring)
-      const cpus = cpus();
+      const cpuInfo = cpus();
       let totalIdle = 0;
       let totalTick = 0;
       
-      cpus.forEach(cpu => {
+      cpuInfo.forEach(cpu => {
         for (let type in cpu.times) {
           totalTick += cpu.times[type];
         }
@@ -111,8 +111,8 @@ class WebhookProxyServer {
       });
       
       // Calculate CPU usage percentage
-      const idle = totalIdle / cpus.length;
-      const total = totalTick / cpus.length;
+      const idle = totalIdle / cpuInfo.length;
+      const total = totalTick / cpuInfo.length;
       const usage = 100 - Math.round(100 * idle / total);
       
       this.systemMetrics.cpuUsage = Math.max(0, Math.min(100, usage)); // Clamp between 0-100
@@ -159,53 +159,42 @@ class WebhookProxyServer {
           return;
         }
         
-        const slug = pathname.substring(1); // Remove leading slash
+        // Handle webhook endpoints - /hooks/{hook}
+        if (pathname.startsWith('/hooks/')) {
+          const hook = pathname.substring(7); // Remove '/hooks/' prefix
+          
+          console.log(`[HTTP] ${req.method} ${req.url} - Hook: "${hook}" - IP: ${clientIP}`);
+          
+          if (!hook) {
+            console.log(`[HTTP] Error: No hook provided for ${req.method} ${req.url}`);
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Hook name required' }));
+            return;
+          }
+
+          // Validate hook name
+          if (!this.validateSlug(hook)) {
+            console.log(`[HTTP] Error: Invalid hook name "${hook}"`);
+            this.addLog(`Invalid hook name attempt: "${hook}" from IP: ${clientIP}`, 'security');
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid hook name format' }));
+            return;
+          }
+
+          // Process webhook request
+          this.handleWebhookRequest(req, res, hook);
+          return;
+        }
         
-        console.log(`[HTTP] ${req.method} ${req.url} - Slug: "${slug}" - IP: ${clientIP}`);
-        
-        if (!slug) {
-          console.log(`[HTTP] Error: No slug provided for ${req.method} ${req.url}`);
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Slug required' }));
+        // Handle root path - show help/info
+        if (pathname === '/') {
+          this.handleRootRequest(req, res);
           return;
         }
 
-        // Validate slug
-        if (!this.validateSlug(slug)) {
-          console.log(`[HTTP] Error: Invalid slug "${slug}"`);
-          this.addLog(`Invalid slug attempt: "${slug}" from IP: ${clientIP}`, 'security');
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Invalid slug format' }));
-          return;
-        }
-
-        // Prevent using 'status' as a slug
-        if (slug === 'status') {
-          console.log(`[HTTP] Error: 'status' slug is reserved`);
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'The slug "status" is reserved for the server status page' }));
-          return;
-        }
-
-        // Check slug whitelist if configured
-        if (this.securityConfig.slugWhitelist.length > 0 && !this.securityConfig.slugWhitelist.includes(slug)) {
-          console.log(`[HTTP] Error: Slug "${slug}" not in whitelist`);
-          this.addLog(`Unauthorized slug attempt: "${slug}" from IP: ${clientIP}`, 'security');
-          res.writeHead(403, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Slug not authorized' }));
-          return;
-        }
-
-        // Check if there's an active WebSocket client for this slug
-        const client = this.clients.get(slug);
-        
-        if (client && client.readyState === 1) { // WebSocket.OPEN
-          console.log(`[HTTP] Found active WebSocket client for slug: "${slug}"`);
-          this.handleRequestWithClient(req, res, slug, client);
-        } else {
-          console.log(`[HTTP] No active WebSocket client for slug: "${slug}" - queuing request`);
-          this.handleRequestWithoutClient(req, res, slug);
-        }
+        // 404 for any other paths
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Not found' }));
       } catch (error) {
         console.error(`[HTTP] Error processing request ${req.method} ${req.url}:`, error.message);
         this.addLog(`HTTP request error: ${error.message}`, 'error');
@@ -580,6 +569,45 @@ class WebhookProxyServer {
         console.error(`[HTTP] Error sending error response for queued request ${requestId}:`, responseError.message);
       }
     }
+  }
+
+  handleWebhookRequest(req, res, hook) {
+    // Check hook whitelist if configured
+    if (this.securityConfig.slugWhitelist.length > 0 && !this.securityConfig.slugWhitelist.includes(hook)) {
+      console.log(`[HTTP] Error: Hook "${hook}" not in whitelist`);
+      this.addLog(`Unauthorized hook attempt: "${hook}" from IP: ${this.getClientIP(req)}`, 'security');
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Hook not authorized' }));
+      return;
+    }
+
+    // Check if there's an active WebSocket client for this hook
+    const client = this.clients.get(hook);
+    
+    if (client && client.readyState === 1) { // WebSocket.OPEN
+      console.log(`[HTTP] Found active WebSocket client for hook: "${hook}"`);
+      this.handleRequestWithClient(req, res, hook, client);
+    } else {
+      console.log(`[HTTP] No active WebSocket client for hook: "${hook}" - queuing request`);
+      this.handleRequestWithoutClient(req, res, hook);
+    }
+  }
+
+  handleRootRequest(req, res) {
+    const helpInfo = {
+      name: "WebhookProxy Server",
+      version: "1.0.0",
+      description: "WebSocket proxy server for HTTP requests and webhooks",
+      endpoints: {
+        webhooks: "/hooks/{hook}",
+        status: "/status",
+        api: "/api/status"
+      },
+      documentation: "Visit /status for the web interface"
+    };
+    
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(helpInfo, null, 2));
   }
 
   async collectRequestData(req) {

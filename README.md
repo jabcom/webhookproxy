@@ -1,11 +1,11 @@
 # WebhookProxy 🚀
 
-A high-performance Node.js WebSocket proxy server that forwards HTTP requests to WebSocket clients based on URL slugs. Perfect for building real-time APIs, microservices, webhooks, and distributed systems.
+A high-performance Node.js WebSocket proxy server that forwards HTTP requests to WebSocket clients based on webhook endpoints. Perfect for building real-time APIs, microservices, webhooks, and distributed systems.
 
 ## 🌟 Features
 
 - **🔄 Real-time HTTP-to-WebSocket Proxy**: Forward HTTP requests to WebSocket clients instantly
-- **🏷️ Slug-based Routing**: Route requests to specific WebSocket clients using URL slugs
+- **🏷️ Webhook-based Routing**: Route requests to specific WebSocket clients using webhook endpoints
 - **⚡ High Performance**: Handles thousands of concurrent requests with minimal latency
 - **🔒 Enterprise Security**: JWT authentication, rate limiting, input validation, and security headers
 - **📊 Real-time Monitoring**: Live status dashboard with comprehensive metrics
@@ -20,9 +20,9 @@ A high-performance Node.js WebSocket proxy server that forwards HTTP requests to
 ```mermaid
 graph TB
     Client[HTTP Client] --> Proxy[WebhookProxy Server]
-    Proxy --> WS1[WebSocket Client 1<br/>slug: api-service]
-    Proxy --> WS2[WebSocket Client 2<br/>slug: webhook-handler]
-    Proxy --> WS3[WebSocket Client 3<br/>slug: data-processor]
+    Proxy --> WS1[WebSocket Client 1<br/>hook: api-service]
+    Proxy --> WS2[WebSocket Client 2<br/>hook: webhook-handler]
+    Proxy --> WS3[WebSocket Client 3<br/>hook: data-processor]
     
     WS1 --> Backend1[Backend Service 1]
     WS2 --> Backend2[Backend Service 2]
@@ -40,8 +40,8 @@ sequenceDiagram
     participant P as WebhookProxy
     participant WS as WebSocket Client
     
-    C->>P: GET /api-service
-    P->>P: Validate slug & rate limit
+    C->>P: GET /hooks/api-service
+    P->>P: Validate hook & rate limit
     P->>WS: Forward request with UUID
     Note over WS: Process request
     WS->>P: Send response with UUID
@@ -80,7 +80,7 @@ const WebSocket = require('ws');
 const ws = new WebSocket('ws://localhost:3000/ws');
 
 ws.on('open', () => {
-  // Register with a slug
+  // Register with a hook name
   ws.send(JSON.stringify({
     slug: 'my-service'
   }));
@@ -107,6 +107,30 @@ ws.on('message', (data) => {
     }));
   }
 });
+```
+
+## 🔗 Webhook URL Format
+
+WebhookProxy uses a RESTful URL structure for webhook endpoints:
+
+- **Webhook Endpoints**: `/hooks/{hook}`
+- **Status Page**: `/status`
+- **API Endpoint**: `/api/status`
+- **Root Help**: `/`
+
+### Examples
+
+```bash
+# Send a webhook to your service
+curl -X POST http://localhost:3000/hooks/my-webhook \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello from webhook!"}'
+
+# Check server status
+curl http://localhost:3000/api/status
+
+# View help information
+curl http://localhost:3000/
 ```
 
 ## 🐍 Python WebSocket Client
