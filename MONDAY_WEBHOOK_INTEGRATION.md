@@ -362,11 +362,11 @@ namespace WebhookProxy
                 // Connect
                 webSocket.Connect();
                 
-                LogDebug("🔌 Attempting to connect to WebhookProxy...");
+                LogDebug("Attempting to connect to WebhookProxy...");
             }
             catch (Exception e)
             {
-                LogError($"❌ Failed to create WebSocket connection: {e.Message}");
+                LogError($"Failed to create WebSocket connection: {e.Message}");
                 OnError?.Invoke($"Connection failed: {e.Message}");
             }
         }
@@ -377,7 +377,7 @@ namespace WebhookProxy
             reconnectAttempts = 0;
             shouldReconnect = true;
             
-            LogDebug("✅ Connected to WebhookProxy server");
+            LogDebug("Connected to WebhookProxy server");
             OnConnectionStatusChanged?.Invoke("Connected");
             
             // Register with slug
@@ -385,7 +385,7 @@ namespace WebhookProxy
             string jsonMessage = JsonConvert.SerializeObject(registrationMessage);
             webSocket.Send(jsonMessage);
             
-            LogDebug($"📝 Registered with slug: {slug}");
+            LogDebug($"Registered with slug: {slug}");
         }
         
         void OnWebSocketMessage(object sender, MessageEventArgs e)
@@ -402,26 +402,26 @@ namespace WebhookProxy
                 }
                 else
                 {
-                    LogDebug("⚠️ Received message for different slug or invalid format");
+                    LogDebug("Received message for different slug or invalid format");
                 }
             }
             catch (Exception ex)
             {
-                LogError($"❌ Error processing WebSocket message: {ex.Message}");
+                LogError($"Error processing WebSocket message: {ex.Message}");
                 OnError?.Invoke($"Message processing error: {ex.Message}");
             }
         }
         
         void OnWebSocketError(object sender, ErrorEventArgs e)
         {
-            LogError($"❌ WebSocket error: {e.Message}");
+            LogError($"WebSocket error: {e.Message}");
             OnError?.Invoke($"WebSocket error: {e.Message}");
         }
         
         void OnWebSocketClose(object sender, CloseEventArgs e)
         {
             isConnected = false;
-            LogDebug($"🔌 WebSocket closed: {e.Reason}");
+            LogDebug($"WebSocket closed: {e.Reason}");
             OnConnectionStatusChanged?.Invoke($"Disconnected: {e.Reason}");
             
             if (shouldReconnect && reconnectAttempts < maxReconnectAttempts)
@@ -443,7 +443,7 @@ namespace WebhookProxy
         IEnumerator ReconnectCoroutine()
         {
             reconnectAttempts++;
-            LogDebug($"🔄 Attempting to reconnect ({reconnectAttempts}/{maxReconnectAttempts}) in {reconnectDelay} seconds...");
+            LogDebug($"Attempting to reconnect ({reconnectAttempts}/{maxReconnectAttempts}) in {reconnectDelay} seconds...");
             
             yield return new WaitForSeconds(reconnectDelay);
             
@@ -477,7 +477,7 @@ namespace WebhookProxy
                 
                 if (mondayPayload?.Event != null)
                 {
-                    LogDebug($"📋 Monday.com webhook received:");
+                    LogDebug($"Monday.com webhook received:");
                     LogDebug($"   Type: {mondayPayload.Event.Type}");
                     LogDebug($"   Board ID: {mondayPayload.Event.BoardId}");
                     LogDebug($"   Pulse ID: {mondayPayload.Event.PulseId}");
@@ -491,13 +491,13 @@ namespace WebhookProxy
                 }
                 else
                 {
-                    LogDebug("⚠️ Invalid Monday.com webhook payload");
+                    LogDebug("Invalid Monday.com webhook payload");
                     SendErrorResponse(requestData.Id, 400, "Invalid webhook payload");
                 }
             }
             catch (Exception ex)
             {
-                LogError($"❌ Error handling webhook request: {ex.Message}");
+                LogError($"Error handling webhook request: {ex.Message}");
                 SendErrorResponse(requestData.Id, 500, $"Internal error: {ex.Message}");
             }
         }
@@ -536,7 +536,7 @@ namespace WebhookProxy
             string jsonResponse = JsonConvert.SerializeObject(response);
             webSocket.Send(jsonResponse);
             
-            LogDebug($"✅ Sent success response for request {requestId}");
+            LogDebug($"Sent success response for request {requestId}");
         }
         
         void SendErrorResponse(string requestId, int statusCode, string errorMessage)
@@ -943,12 +943,12 @@ In the Unity Inspector:
 - Server URL: `ws://localhost:3000/ws`
 - Webhook URL: `http://localhost:3000/hooks/monday-webhooks`
 - Slug: `monday-webhooks`
-- Auto Connect: ✅
-- Enable Debug Logs: ✅
+- Auto Connect: Enabled
+- Enable Debug Logs: Enabled
 - Monday Webhook Verification Token: (your token)
 
 **MondayWebhookHandler:**
-- Enable Debug Logs: ✅
+- Enable Debug Logs: Enabled
 
 ### 3. Test Webhook Reception
 
@@ -1038,7 +1038,7 @@ location /monday-webhooks {
 
 #### 1. Connection Failed
 ```
-❌ Failed to create WebSocket connection
+Failed to create WebSocket connection
 ```
 **Solutions:**
 - Check if WebhookProxy server is running
@@ -1048,7 +1048,7 @@ location /monday-webhooks {
 
 #### 2. Webhook Not Received
 ```
-⚠️ No webhooks received from Monday.com
+No webhooks received from Monday.com
 ```
 **Solutions:**
 - Verify Monday.com webhook URL is correct
@@ -1058,7 +1058,7 @@ location /monday-webhooks {
 
 #### 3. JSON Parsing Errors
 ```
-❌ Error processing WebSocket message
+Error processing WebSocket message
 ```
 **Solutions:**
 - Verify Newtonsoft.Json package is installed
@@ -1094,39 +1094,39 @@ docker logs webhookproxy
 ## Best Practices
 
 ### 1. Security
-- ✅ Always verify Monday.com webhook signatures
-- ✅ Use HTTPS/WSS in production
-- ✅ Implement rate limiting
-- ✅ Validate all incoming data
-- ✅ Use environment variables for secrets
+- Always verify Monday.com webhook signatures
+- Use HTTPS/WSS in production
+- Implement rate limiting
+- Validate all incoming data
+- Use environment variables for secrets
 
 ### 2. Error Handling
-- ✅ Implement comprehensive try-catch blocks
-- ✅ Log all errors and warnings
-- ✅ Handle network disconnections gracefully
-- ✅ Implement retry mechanisms
-- ✅ Provide user-friendly error messages
+- Implement comprehensive try-catch blocks
+- Log all errors and warnings
+- Handle network disconnections gracefully
+- Implement retry mechanisms
+- Provide user-friendly error messages
 
 ### 3. Performance
-- ✅ Process webhooks asynchronously
-- ✅ Implement webhook queuing for high volume
-- ✅ Use object pooling for frequent allocations
-- ✅ Monitor memory usage
-- ✅ Implement cleanup routines
+- Process webhooks asynchronously
+- Implement webhook queuing for high volume
+- Use object pooling for frequent allocations
+- Monitor memory usage
+- Implement cleanup routines
 
 ### 4. Monitoring
-- ✅ Track webhook statistics
-- ✅ Monitor connection status
-- ✅ Log all webhook events
-- ✅ Set up alerts for failures
-- ✅ Monitor server performance
+- Track webhook statistics
+- Monitor connection status
+- Log all webhook events
+- Set up alerts for failures
+- Monitor server performance
 
 ### 5. Testing
-- ✅ Unit test webhook handlers
-- ✅ Integration test with Monday.com
-- ✅ Test error scenarios
-- ✅ Performance test under load
-- ✅ Test reconnection logic
+- Unit test webhook handlers
+- Integration test with Monday.com
+- Test error scenarios
+- Performance test under load
+- Test reconnection logic
 
 ## Example Use Cases
 
@@ -1169,6 +1169,6 @@ docker logs webhookproxy
 
 ---
 
-**Happy Webhooking! 🚀**
+**Happy Webhooking!**
 
 This integration allows you to build powerful real-time applications that respond instantly to changes in your Monday.com boards. The combination of WebhookProxy's reliability and Unity's flexibility creates endless possibilities for project management, team collaboration, and interactive dashboards.

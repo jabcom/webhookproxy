@@ -1,21 +1,21 @@
-# WebhookProxy 🚀
+# WebhookProxy
 
-A high-performance Node.js WebSocket proxy server that forwards HTTP requests to WebSocket clients based on webhook endpoints. Perfect for building real-time APIs, microservices, webhooks, and distributed systems.
+A high-performance Node.js WebSocket proxy server that forwards HTTP requests to WebSocket clients based on webhook endpoints. Designed for building real-time APIs, microservices, webhooks, and distributed systems.
 
-## 🌟 Features
+## Features
 
-- **🔄 Real-time HTTP-to-WebSocket Proxy**: Forward HTTP requests to WebSocket clients instantly
-- **🏷️ Webhook-based Routing**: Route requests to specific WebSocket clients using webhook endpoints
-- **⚡ High Performance**: Handles thousands of concurrent requests with minimal latency
-- **🔒 Enterprise Security**: JWT authentication, rate limiting, input validation, and security headers
-- **📊 Real-time Monitoring**: Live status dashboard with comprehensive metrics
-- **💾 Memory Management**: Automatic cleanup and garbage collection for long-running servers
-- **🐳 Docker Ready**: Production-ready containerization with security best practices
-- **🔧 Highly Configurable**: Extensive environment variable configuration
-- **📝 Comprehensive Logging**: Detailed logging with security event tracking
-- **🌐 CORS Support**: Configurable Cross-Origin Resource Sharing
+- **Real-time HTTP-to-WebSocket Proxy**: Forward HTTP requests to WebSocket clients instantly
+- **Webhook-based Routing**: Route requests to specific WebSocket clients using webhook endpoints
+- **High Performance**: Handles thousands of concurrent requests with minimal latency
+- **Enterprise Security**: JWT authentication, rate limiting, input validation, and security headers
+- **Real-time Monitoring**: Live status dashboard with comprehensive metrics
+- **Memory Management**: Automatic cleanup and garbage collection for long-running servers
+- **Docker Ready**: Production-ready containerization with security best practices
+- **Highly Configurable**: Extensive environment variable configuration
+- **Comprehensive Logging**: Detailed logging with security event tracking
+- **CORS Support**: Configurable Cross-Origin Resource Sharing
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```mermaid
 graph TB
@@ -32,7 +32,7 @@ graph TB
     Proxy --> Auth[Authentication<br/>/auth/login]
 ```
 
-## ⏱️ Request Flow Timeline
+## Request Flow Timeline
 
 ```mermaid
 sequenceDiagram
@@ -51,7 +51,7 @@ sequenceDiagram
     Note over P: If WS client connects:<br/>Process queued requests
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -109,7 +109,7 @@ ws.on('message', (data) => {
 });
 ```
 
-## 🔗 Webhook URL Format
+## Webhook URL Format
 
 WebhookProxy uses a RESTful URL structure for webhook endpoints:
 
@@ -133,7 +133,7 @@ curl http://localhost:3000/api/status
 curl http://localhost:3000/
 ```
 
-## 🐍 Python WebSocket Client
+## Python WebSocket Client
 
 ### Installation
 
@@ -277,7 +277,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## 🎮 Unity C# WebSocket Client
+## Unity C# WebSocket Client
 
 ### Installation
 
@@ -677,7 +677,7 @@ public class WebhookProxyClient : MonoBehaviour
 }
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -710,7 +710,7 @@ LOG_RETENTION_DAYS=7
 STATS_RETENTION_DAYS=30
 ```
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ### Build and Run
 
@@ -729,20 +729,20 @@ docker run -d \
   webhookproxy
 ```
 
-## 📊 Monitoring & Status
+## Monitoring & Status
 
 ### Status Dashboard
 
 Access the real-time status dashboard at `http://localhost:3000/status`:
 
-- **🟢 Server Status**: Online/offline indicator with uptime
-- **📊 Active Clients**: Live list of connected WebSocket clients
-- **📈 Statistics**: Request counts, response times, success rates
-- **📝 Real-time Logs**: Live log stream with color coding
-- **🔒 Security Events**: Failed logins, rate limit violations
-- **💾 Memory Usage**: Heap usage and cleanup statistics
+- **Server Status**: Online/offline indicator with uptime
+- **Active Clients**: Live list of connected WebSocket clients
+- **Statistics**: Request counts, response times, success rates
+- **Real-time Logs**: Live log stream with color coding
+- **Security Events**: Failed logins, rate limit violations
+- **Memory Usage**: Heap usage and cleanup statistics
 
-## 🔒 Security Features
+## Security Features
 
 ### Authentication & Authorization
 - **JWT-based authentication** for admin access
@@ -763,7 +763,7 @@ Access the real-time status dashboard at `http://localhost:3000/status`:
 - **Automatic cleanup** of rate limit data
 - **Configurable limits** via environment variables
 
-## 🚀 Production Deployment
+## Production Deployment
 
 ### Prerequisites
 - Node.js 18+ or Docker
